@@ -22,7 +22,7 @@ const Products = () => {
         selectedProduct={selectedProduct}
         onProductClick={handleProductClick}
       />
-      <Preview />
+      <Preview selectedProduct={selectedProduct} />
     </div>
   );
 };
