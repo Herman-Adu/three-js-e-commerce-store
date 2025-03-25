@@ -149,9 +149,11 @@ const Preview = ({ selectedProduct }: PreviewProps) => {
     return () => {
       if (mount) {
         mount.removeChild(renderer.domElement);
-        mount.removeEventListener("mousemove", handleMouseMove);
-        mount.removeEventListener("mousedown", handleMouseDown);
       }
+      mount.removeEventListener("mousemove", handleMouseMove);
+      mount.removeEventListener("mousedown", handleMouseDown);
+      mount.removeEventListener("mouseup", handleInteractionEnd);
+      mount.removeEventListener("mouseleave", handleInteractionEnd);
     };
   }, [selectedProduct]);
 
