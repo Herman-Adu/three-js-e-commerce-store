@@ -15,6 +15,10 @@ const Preview = ({ selectedProduct }: PreviewProps) => {
 
   const isMouseDownRef = useRef<boolean>(false);
 
+  const isTouchDownRef = useRef<boolean>(false);
+  const touchStartXRef = useRef<number>(0);
+  const touchStartRotationRef = useRef<number>(0);
+
   useEffect(() => {
     const mount = mountRef.current;
     if (!mount || !selectedProduct) return;
@@ -125,6 +129,27 @@ const Preview = ({ selectedProduct }: PreviewProps) => {
       isMouseDownRef.current = true;
     };
 
+    const handleTouchMove = (event: TouchEvent) => {
+      if (modelRef.current && isTouchDownRef.current) {
+        const touchX = event.touches[0].clientX;
+        const deltaX = touchX - touchStartXRef.current;
+        modelRef.current.rotation.y =
+          touchStartRotationRef.current + deltaX * 0.01;
+      }
+    };
+
+    const handleTouchStart = (event: TouchEvent) => {
+      if (modelRef.current) {
+        isTouchDownRef.current = true;
+        touchStartXRef.current = event.touches[0].clientX;
+        touchStartRotationRef.current = modelRef.current.rotation.y;
+      }
+    };
+
+    const handleTouchEnd = () => {
+      isTouchDownRef.current = false;
+    };
+
     const handleInteractionEnd = () => {
       isMouseDownRef.current = false;
       const animateRotationBack = () => {
@@ -146,6 +171,10 @@ const Preview = ({ selectedProduct }: PreviewProps) => {
     mount.addEventListener("mouseup", handleInteractionEnd);
     mount.addEventListener("mouseleave", handleInteractionEnd);
 
+    mount.addEventListener("touchstart", handleTouchStart);
+    mount.addEventListener("touchmove", handleTouchMove);
+    mount.addEventListener("touchend", handleTouchEnd);
+
     return () => {
       if (mount) {
         mount.removeChild(renderer.domElement);
@@ -154,6 +183,10 @@ const Preview = ({ selectedProduct }: PreviewProps) => {
       mount.removeEventListener("mousedown", handleMouseDown);
       mount.removeEventListener("mouseup", handleInteractionEnd);
       mount.removeEventListener("mouseleave", handleInteractionEnd);
+
+      mount.removeEventListener("touchstart", handleTouchStart);
+      mount.removeEventListener("touchmove", handleTouchMove);
+      mount.removeEventListener("touchend", handleTouchEnd);
     };
   }, [selectedProduct]);
 
