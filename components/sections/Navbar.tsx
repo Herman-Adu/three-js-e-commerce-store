@@ -1,9 +1,14 @@
+"use client";
+
 import Link from "next/link";
 import React from "react";
 import { FaCartShopping } from "react-icons/fa6";
 import Logo from "../Logo";
+import { useCart } from "./Cart";
 
 const Navbar = () => {
+  const { toggleCart } = useCart();
+
   return (
     <div className="max-w-[1024px] flex flex-row justify-between items-center p-8 mx-auto">
       <Logo size="lg" />
@@ -27,7 +32,10 @@ const Navbar = () => {
           Reviews
         </Link>
       </div>
-      <FaCartShopping className="w-6 h-6 text-slate-400 cursor-pointer" />
+      <FaCartShopping
+        className="w-6 h-6 text-slate-400 cursor-pointer"
+        onClick={toggleCart}
+      />
     </div>
   );
 };

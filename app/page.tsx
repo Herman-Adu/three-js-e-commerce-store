@@ -1,3 +1,4 @@
+import Cart from "@/components/sections/Cart";
 import Features from "@/components/sections/Features";
 import Footer from "@/components/sections/Footer";
 import Hero from "@/components/sections/Hero";
@@ -9,6 +10,7 @@ import Sale from "@/components/sections/Sale";
 export default function Home() {
   return (
     <main className="text-slate-100">
+      <Cart />
       <Navbar />
       <Hero />
       <Products />
