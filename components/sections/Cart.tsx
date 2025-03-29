@@ -18,7 +18,20 @@ interface CartContextType {
   isOpen: boolean;
   toggleCart: () => void;
   cartItems: CartProduct[];
+  handleAddProduct: (index: number) => void;
+  handleRemoveProduct: (index: number) => void;
+  handleDeleteProduct: (index: number) => void;
 }
+
+const CartContext = createContext<CartContextType>({
+  addToCart: () => {},
+  isOpen: false,
+  toggleCart: () => {},
+  cartItems: [],
+  handleAddProduct: () => {},
+  handleRemoveProduct: () => {},
+  handleDeleteProduct: () => {},
+});
 
 export const useCart = () => useContext(CartContext);
 
@@ -27,9 +40,20 @@ interface CartProductProps {
   title: string;
   price: number;
   quantity: number;
+  onAdd: () => void;
+  onRemove: () => void;
+  onDelete: () => void;
 }
 
-const CartProduct = ({ imgSrc, title, price, quantity }: CartProductProps) => {
+const CartProduct = ({
+  imgSrc,
+  title,
+  price,
+  quantity,
+  onAdd,
+  onRemove,
+  onDelete,
+}: CartProductProps) => {
   return (
     <div className="h-32 flex flex-row justify-between pr-3 md:pr-8  bg-stone-950 rounded-xl">
       <div className="flex flex-row gap-4 md:gap-8">
@@ -48,26 +72,26 @@ const CartProduct = ({ imgSrc, title, price, quantity }: CartProductProps) => {
 
         <div className="flex flex-row gap-3 md:gap-6 items-center">
           <div className="flex flex-col md:flex-row gap-y-2 gap-x-4 items-center bg-stone-900 px-2 py-3 md:py-1 md:px-3 rounded-full">
-            <FaPlus className="w-3 h-3 cursor-pointer" />
+            <FaPlus className="w-3 h-3 cursor-pointer" onClick={onAdd} />
             <div>{quantity}</div>
-            <FaMinus className="w-3 h-3 cursor-pointer" />
+            <FaMinus className="w-3 h-3 cursor-pointer" onClick={onRemove} />
           </div>
+          <FaTrash className="w-3 h-3 cursor-pointer" onClick={onDelete} />
         </div>
-        <FaTrash className="w-3 h-3 cursor-pointer" />
       </div>
     </div>
   );
 };
 
-const CartContext = createContext<CartContextType>({
-  addToCart: () => {},
-  isOpen: false,
-  toggleCart: () => {},
-  cartItems: [],
-});
-
 const Cart = () => {
-  const { isOpen, toggleCart, cartItems } = useCart();
+  const {
+    isOpen,
+    toggleCart,
+    cartItems,
+    handleAddProduct,
+    handleRemoveProduct,
+    handleDeleteProduct,
+  } = useCart();
   const [total, setTotal] = useState<number>(0);
 
   useEffect(() => {
@@ -76,6 +100,7 @@ const Cart = () => {
       (sum, product) => sum + product.price * product.quantity,
       0
     );
+    setTotal(newTotal);
 
     // Save cart data to localStorage whenever it changes
     if (cartItems.length > 0) {
@@ -103,6 +128,9 @@ const Cart = () => {
                   title={product.title}
                   price={product.price}
                   quantity={product.quantity}
+                  onAdd={() => handleAddProduct(index)}
+                  onRemove={() => handleRemoveProduct(index)}
+                  onDelete={() => handleDeleteProduct(index)}
                 />
               ))}
             </div>
@@ -116,11 +144,9 @@ const Cart = () => {
             </div>
           </div>
         ) : (
-          <div>
-            <p className="text-slate-400 text-center mt-32">
-              👏 There`s currently nothing in here.
-            </p>
-          </div>
+          <p className="text-slate-400 text-center mt-32">
+            👏 There`s currently nothing in here.
+          </p>
         )}
       </div>
     </div>
@@ -141,19 +167,45 @@ const CartProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const addToCart = (product: CartProduct) => {
-    // check if product is alreay in cart
     const existingProduct = cartItems.find((p) => p.title === product.title);
 
     if (existingProduct) {
       toast("Product already in Cart", { icon: "👏" });
     } else {
-      // add new product to cart
       const newCart = [...cartItems, { ...product, quantity: 1 }];
       setCartItems(newCart);
-
       localStorage.setItem("cart", JSON.stringify(newCart));
       toast.success("Product added to cart!");
     }
+  };
+
+  const handleAddProduct = (index: number) => {
+    const updatedCart = cartItems.map((item, i) =>
+      i === index ? { ...item, quantity: item.quantity + 1 } : item
+    );
+
+    setCartItems(updatedCart);
+
+    localStorage.setItem("cart", JSON.stringify(updatedCart));
+  };
+
+  const handleRemoveProduct = (index: number) => {
+    const updatedCart = cartItems.map((item, i) =>
+      i === index && item.quantity > 1
+        ? { ...item, quantity: item.quantity - 1 }
+        : item
+    );
+
+    setCartItems(updatedCart);
+
+    localStorage.setItem("cart", JSON.stringify(updatedCart));
+  };
+
+  const handleDeleteProduct = (index: number) => {
+    const updatedCart = cartItems.filter((_, i) => i !== index);
+    setCartItems(updatedCart);
+
+    localStorage.setItem("cart", JSON.stringify(updatedCart));
   };
 
   const toggleCart = () => {
@@ -167,6 +219,9 @@ const CartProvider = ({ children }: { children: React.ReactNode }) => {
         isOpen,
         toggleCart,
         cartItems,
+        handleAddProduct,
+        handleRemoveProduct,
+        handleDeleteProduct,
       }}
     >
       {children}
